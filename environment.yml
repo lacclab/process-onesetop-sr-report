@@ -1,0 +1,29 @@
+name: osg
+channels:
+  - defaults
+  - pytorch
+  - huggingface
+  - conda-forge
+  - r
+dependencies:
+  - python
+  - pandas
+  - numpy
+  - pyyaml
+  - tabulate
+  - datasets
+  - pytorch
+  - jupyter
+  - ipykernel
+  - matplotlib
+  - transformers
+  - pip
+  - spacy
+  - r-essentials
+  - r-gratia
+  - pip:
+      - dvc
+      - git+https://github.com/lacclab/text-metrics.git
+      - dvclive
+      - rpy2
+      - -e . # For development purposes
