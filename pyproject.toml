@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "process_onestop_sr_report"
+name = "process-onestop-sr-report"
 version = "0.1"
 authors = [
   { name="Omer Shubi", email="omer.shubi@gmail.com" },
