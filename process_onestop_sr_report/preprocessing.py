@@ -295,12 +295,13 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
     else:
         hunting_data = load_data(args.hunting_data_path, sep="\t")
         gathering_data = load_data(args.gathering_data_path, sep="\t")
-        df = pd.concat([hunting_data, gathering_data])
+        df = pd.concat([hunting_data, gathering_data]).copy()
+        del hunting_data, gathering_data
     
     df = df.loc[
         :, ~df.columns.str.contains("FSA")
     ].copy()  # TODO Temp, delete after removing from raw data
-    del hunting_data, gathering_data
+    
 
     # In general, only features that have '.' or NaN or not automatically converted.
     to_int_features = [
