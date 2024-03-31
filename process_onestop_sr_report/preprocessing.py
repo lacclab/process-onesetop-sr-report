@@ -771,7 +771,10 @@ def load_data(
 ) -> pd.DataFrame:
 
     if data_path.is_dir():
-        dataframes = [pd.read_csv(file, sep='\t', encoding='utf-16', **kwargs) for file in data_path.glob('*.tsv')]
+        try:
+            dataframes = [pd.read_csv(file, sep='\t', encoding='utf-16', **kwargs) for file in data_path.glob('*.tsv')]
+        except UnicodeError:
+            dataframes = [pd.read_csv(file, sep='\t', **kwargs) for file in data_path.glob('*.tsv')]
         data = pd.concat(dataframes, ignore_index=True)
     else:
         try:
