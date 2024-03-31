@@ -199,6 +199,7 @@ class ArgsParser(Tap):
     save_path: Path = Path()  # The path to save the data.
     hunting_data_path: Path = Path()  # Path to hunting data.
     gathering_data_path: Path = Path()  # Path to gathering data.
+    data_path: Path = Path()  # Path to data folder.
     onestopqa_path: Path = Path("data/interim/onestop_qa.json")
     unique_item_columns: List[str] = [
         "batch",
@@ -289,9 +290,13 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
 
     logger.info("Preprocessing data...")
 
-    hunting_data = load_data(args.hunting_data_path, sep="\t")
-    gathering_data = load_data(args.gathering_data_path, sep="\t")
-    df = pd.concat([hunting_data, gathering_data])
+    if args.data_path:
+        df = load_data(args.data_path)
+    else:
+        hunting_data = load_data(args.hunting_data_path, sep="\t")
+        gathering_data = load_data(args.gathering_data_path, sep="\t")
+        df = pd.concat([hunting_data, gathering_data])
+    
     df = df.loc[
         :, ~df.columns.str.contains("FSA")
     ].copy()  # TODO Temp, delete after removing from raw data
@@ -761,14 +766,20 @@ def compute_normalized_features(
 
 
 def load_data(
-    data_path, has_preview_to_numeric: bool = False, **kwargs
+    data_path: Path, has_preview_to_numeric: bool = False, **kwargs
 ) -> pd.DataFrame:
-    try:
-        print(f"Load data from {data_path} using pyarrow.")
-        data = pd.read_csv(data_path, engine="pyarrow", **kwargs)
-    except ValueError:
-        print(f"Load data from {data_path} (without pyarrow -- much slower!).")
-        data = pd.read_csv(data_path, **kwargs)
+
+    if data_path.is_dir():
+        dataframes = [pd.read_csv(file, sep='\t', encoding='utf-16', **kwargs) for file in directory.glob('*.tsv')]
+        data = pd.concat(dataframes, ignore_index=True)
+    else:
+        try:
+            print(f"Load data from {data_path} using pyarrow.")
+            data = pd.read_csv(data_path, engine="pyarrow", **kwargs)
+        except ValueError:
+            print(f"Load data from {data_path} (without pyarrow -- much slower!).")
+            data = pd.read_csv(data_path, **kwargs)
+
     if has_preview_to_numeric:
         data["has_preview"] = data["has_preview"].map({"Gathering": 0, "Hunting": 1})
 
