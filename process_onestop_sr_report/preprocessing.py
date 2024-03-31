@@ -774,7 +774,7 @@ def load_data(
         try:
             dataframes = [pd.read_csv(file, sep='\t', encoding='utf-16', **kwargs) for file in data_path.glob('*.tsv')]
         except UnicodeError:
-            dataframes = [pd.read_csv(file, sep='\t', **kwargs) for file in data_path.glob('*.tsv')]
+            dataframes = [pd.read_csv(file, sep='\t', low_memory=False, **kwargs) for file in data_path.glob('*.tsv')]
         data = pd.concat(dataframes, ignore_index=True)
     else:
         try:
