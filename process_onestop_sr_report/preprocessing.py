@@ -64,6 +64,7 @@ class ArgsParser(Tap):
         "unique_paragraph_id",
         "has_preview",
         "q_ind",
+        "q_condition",
         "practice",
         "reread",
         "is_correct",
@@ -521,6 +522,13 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
         text_data["q_reference"] = q_references
         df = df.merge(text_data, validate="m:1", how="left")
 
+    # q_condition = q_ind if has_preview is Hunting else 3
+    # {"Gathering": 0, "Hunting": 1}
+    df["q_condition"] = df.apply(
+        lambda x: x["q_ind"] if x["has_preview"] in [1, "Hunting"] else 3, axis=1
+    )
+
+    
     df = filter_columns(df, args.base_cols)
 
     df.to_csv(args.save_path)
