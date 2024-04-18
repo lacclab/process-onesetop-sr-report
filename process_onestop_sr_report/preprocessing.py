@@ -827,11 +827,27 @@ def validate_spacy_model(spacy_model_name: str) -> None:
 
 
 if __name__ == "__main__":
+    # # load EleutherAI/gpt-j-6B
+    # import numpy as np
+    # from transformers import GPT2LMHeadModel, GPT2Tokenizer
+    # from transformers import AutoTokenizer, AutoModelForCausalLM
+    
+    # gptj_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-6.7b")
+    # gptj_model = AutoModelForCausalLM.from_pretrained("facebook/opt-6.7b")
+    # gptj_model.to("cuda:0")
+    
     cfg = ArgsParser().parse_args()
     cfg.data_path = Path("/data/home/shared/onestop/p_ia_reports")
-    cfg.save_path = Path("/data/home/meiri.yoav/process-onestop-sr-report/processed.csv")
-    cfg.device = "cuda:3"
-    cfg.SURPRISAL_MODELS = ["gpt2", 'EleutherAI/gpt-j-6B', "facebook/opt-350m", "facebook/opt-1.3b", "facebook/opt-2.7b"]
+    cfg.save_path = Path("/data/home/meiri.yoav/process-onestop-sr-report/ia_rep_180424.csv")
+    cfg.device = "cuda:0"
+    cfg.SURPRISAL_MODELS = ["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
+                            "EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-1.3B", "EleutherAI/gpt-neo-2.7B"
+                            'EleutherAI/gpt-j-6B',
+                            "facebook/opt-350m", "facebook/opt-1.3b", "facebook/opt-2.7b", "facebook/opt-6.7b",
+                            "EleutherAI/pythia-70m", "EleutherAI/pythia-160m", "EleutherAI/pythia-410m", "EleutherAI/pythia-1b",
+                            "EleutherAI/pythia-1.4b", "EleutherAI/pythia-2.8b", "EleutherAI/pythia-6.9b",
+                            "state-spaces/mamba-370m-hf", "state-spaces/mamba-790m-hf", "state-spaces/mamba-1.4b-hf", "state-spaces/mamba-2.8b-hf"
+                            ]
     print("DATA PATH")
     print(cfg.data_path)
     preprocess_data(cfg)
