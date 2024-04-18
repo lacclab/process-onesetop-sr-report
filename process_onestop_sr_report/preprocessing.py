@@ -12,6 +12,7 @@ import spacy
 from tap import Tap
 from text_metrics.merge_metrics_with_eye_movements import add_metrics_to_eye_tracking
 from tqdm import tqdm
+import torch
 
 
 class Mode(Enum):
@@ -223,6 +224,7 @@ class ArgsParser(Tap):
     qas_prolific_distribution_path: Path | None = None
     add_question_in_prompt: bool = False  # whether to add the question in the prompt
     mode: Mode = Mode.IA  # whether to use interest area or fixation data
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
     def process_args(self) -> None:
         validate_spacy_model(self.NLP_MODEL)
@@ -687,7 +689,9 @@ def add_word_metrics(df: pd.DataFrame, args: ArgsParser) -> pd.DataFrame:
         spacy_model_name=args.NLP_MODEL,
         add_question_in_prompt=args.add_question_in_prompt,
         parsing_mode=args.parsing_mode,
+        model_target_device=args.device,
     )
+    
 
     logger.info("Renaming column 'IA_LABEL_x' to 'IA_LABEL'...")
     df.rename(columns={"IA_LABEL_x": "IA_LABEL"}, inplace=True)
@@ -824,4 +828,10 @@ def validate_spacy_model(spacy_model_name: str) -> None:
 
 if __name__ == "__main__":
     cfg = ArgsParser().parse_args()
+    cfg.data_path = Path("/data/home/shared/onestop/p_ia_reports")
+    cfg.save_path = Path("/data/home/meiri.yoav/process-onestop-sr-report/processed.csv")
+    cfg.device = "cuda:3"
+    cfg.SURPRISAL_MODELS = ["gpt2", 'EleutherAI/gpt-j-6B', "facebook/opt-350m", "facebook/opt-1.3b", "facebook/opt-2.7b"]
+    print("DATA PATH")
+    print(cfg.data_path)
     preprocess_data(cfg)
