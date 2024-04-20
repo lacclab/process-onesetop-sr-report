@@ -838,23 +838,10 @@ def validate_spacy_model(spacy_model_name: str) -> None:
 
 
 if __name__ == "__main__":
-    # # load EleutherAI/gpt-j-6B
-    # import numpy as np
-    # from transformers import GPT2LMHeadModel, GPT2Tokenizer
-    # from transformers import AutoTokenizer, AutoModelForCausalLM
-
-    # gptj_tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-12b")
-    # gptj_model = AutoModelForCausalLM.from_pretrained("EleutherAI/pythia-12b")
-    # print("Loaded EleutherAI/pythia-12b")
-    # gptj_model.to("cuda:1")
-    # # sleep for 60 seconds
-    # import time
-    # time.sleep(60)
-    
     cfg = ArgsParser().parse_args()
     cfg.hf_access_token = "" # Add your huggingface access token here
-    cfg.data_path = Path("/data/home/meiri.yoav/data/p_ia_reports")
-    cfg.save_path = Path("/data/home/meiri.yoav/process-onestop-sr-report/ia_rep_180424.csv")
+    cfg.data_path = Path("/data/home/shared/onestop/p_ia_reports")
+    cfg.save_path = Path("/data/home/shared/onestop/processed/ia_data_enriched_360_18042024.csv")
     cfg.device = "cuda:0"
     cfg.SURPRISAL_MODELS = ["meta-llama/Llama-2-7b-hf", 
                             "gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
