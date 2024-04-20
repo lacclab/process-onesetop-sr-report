@@ -188,12 +188,6 @@ class ArgsParser(Tap):
         "CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE",
     ]  # Also includes surprisal models
 
-    base_cols += [
-        surprisal_model + "_Surprisal" for surprisal_model in SURPRISAL_MODELS
-    ]
-    base_cols += [
-        "prev_" + surprisal_model + "_Surprisal" for surprisal_model in SURPRISAL_MODELS
-    ]
 
     cols_to_add: List[str] = []  # columns to add to base_cols
     cols_to_remove: List[str] = []  # columns to remove from base_cols
@@ -225,6 +219,8 @@ class ArgsParser(Tap):
     add_question_in_prompt: bool = False  # whether to add the question in the prompt
     mode: Mode = Mode.IA  # whether to use interest area or fixation data
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    
+    hf_access_token: str = None
 
     def process_args(self) -> None:
         validate_spacy_model(self.NLP_MODEL)
@@ -275,6 +271,20 @@ def _load_raw_data(data_path) -> pd.DataFrame:
 
 
 def preprocess_data(args: ArgsParser) -> pd.DataFrame:
+    """Preprocesses onestopgaze raw reports
+
+    NOTE: To extract surprisal from state-spaces/mamba-* variants, better to first run:
+    >>> pip install causal-conv1d
+    >>> pip install mamba-ssm
+    """
+    # If this won't be here the Surprisal columns won't be added to the base columns if they are not in the base columns in the first place
+    args.base_cols += [
+        surprisal_model + "_Surprisal" for surprisal_model in args.SURPRISAL_MODELS
+    ]
+    args.base_cols += [
+        "prev_" + surprisal_model + "_Surprisal" for surprisal_model in args.SURPRISAL_MODELS
+    ]
+    
     logger.info("Making sure data paths exist...")
 
     if args.add_prolific_qas_distribution:
@@ -690,6 +700,7 @@ def add_word_metrics(df: pd.DataFrame, args: ArgsParser) -> pd.DataFrame:
         add_question_in_prompt=args.add_question_in_prompt,
         parsing_mode=args.parsing_mode,
         model_target_device=args.device,
+        hf_access_token=args.hf_access_token,
     )
     
 
@@ -831,22 +842,28 @@ if __name__ == "__main__":
     # import numpy as np
     # from transformers import GPT2LMHeadModel, GPT2Tokenizer
     # from transformers import AutoTokenizer, AutoModelForCausalLM
-    
-    # gptj_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-6.7b")
-    # gptj_model = AutoModelForCausalLM.from_pretrained("facebook/opt-6.7b")
-    # gptj_model.to("cuda:0")
+
+    # gptj_tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-12b")
+    # gptj_model = AutoModelForCausalLM.from_pretrained("EleutherAI/pythia-12b")
+    # print("Loaded EleutherAI/pythia-12b")
+    # gptj_model.to("cuda:1")
+    # # sleep for 60 seconds
+    # import time
+    # time.sleep(60)
     
     cfg = ArgsParser().parse_args()
-    cfg.data_path = Path("/data/home/shared/onestop/p_ia_reports")
+    cfg.hf_access_token = "" # Add your huggingface access token here
+    cfg.data_path = Path("/data/home/meiri.yoav/data/p_ia_reports")
     cfg.save_path = Path("/data/home/meiri.yoav/process-onestop-sr-report/ia_rep_180424.csv")
     cfg.device = "cuda:0"
-    cfg.SURPRISAL_MODELS = ["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
-                            "EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-1.3B", "EleutherAI/gpt-neo-2.7B"
+    cfg.SURPRISAL_MODELS = ["meta-llama/Llama-2-7b-hf", 
+                            "gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
+                            "EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-1.3B", "EleutherAI/gpt-neo-2.7B",
                             'EleutherAI/gpt-j-6B',
                             "facebook/opt-350m", "facebook/opt-1.3b", "facebook/opt-2.7b", "facebook/opt-6.7b",
                             "EleutherAI/pythia-70m", "EleutherAI/pythia-160m", "EleutherAI/pythia-410m", "EleutherAI/pythia-1b",
-                            "EleutherAI/pythia-1.4b", "EleutherAI/pythia-2.8b", "EleutherAI/pythia-6.9b",
-                            "state-spaces/mamba-370m-hf", "state-spaces/mamba-790m-hf", "state-spaces/mamba-1.4b-hf", "state-spaces/mamba-2.8b-hf"
+                            "EleutherAI/pythia-1.4b", "EleutherAI/pythia-2.8b", "EleutherAI/pythia-6.9b", "EleutherAI/pythia-12b",
+                            "state-spaces/mamba-370m-hf", "state-spaces/mamba-790m-hf", "state-spaces/mamba-1.4b-hf", "state-spaces/mamba-2.8b-hf",
                             ]
     print("DATA PATH")
     print(cfg.data_path)
