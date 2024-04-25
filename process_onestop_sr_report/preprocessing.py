@@ -842,7 +842,19 @@ def validate_spacy_model(spacy_model_name: str) -> None:
         )
 
 
-def process_data(mode: str):
+def process_data(mode: str, args: List[str]):
+    cfg = ArgsParser().parse_args(args)
+
+    args_save_path = save_path / args_file
+    save_path.mkdir(parents=True, exist_ok=True)
+    cfg.save(str(args_save_path))
+    print(f"Saved config to {args_save_path}")
+
+    print(f"Running preprocessing with args: {args}")
+    preprocess_data(cfg)
+
+
+if __name__ == "__main__":
     data_path = f"/data/home/shared/onestop/p_{mode}_reports"
 
     today = datetime.today().strftime("%d%m%Y")
@@ -877,18 +889,5 @@ def process_data(mode: str):
         "--device",
         device,
     ]
-
-    cfg = ArgsParser().parse_args(args)
-
-    args_save_path = save_path / args_file
-    save_path.mkdir(parents=True, exist_ok=True)
-    cfg.save(str(args_save_path))
-    print(f"Saved config to {args_save_path}")
-
-    print(f"Running preprocessing with args: {args}")
-    preprocess_data(cfg)
-
-
-if __name__ == "__main__":
-    process_data(Mode.FIXATION.value)
-    process_data(Mode.IA.value)
+    process_data(Mode.FIXATION.value, args)
+    process_data(Mode.IA.value, args)
