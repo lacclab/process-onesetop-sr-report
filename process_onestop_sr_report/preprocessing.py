@@ -855,39 +855,39 @@ def process_data(mode: str, args: List[str]):
 
 
 if __name__ == "__main__":
-    data_path = f"/data/home/shared/onestop/p_{mode}_reports"
-
-    today = datetime.today().strftime("%d%m%Y")
-    save_file = f"{mode}_data_enriched_360_{today}.csv"
-    args_file = f"{mode}_preprocessing_args_360_{today}.json"
-    save_path = Path("/data/home/shared/onestop/processed")
-    hf_access_token = ""  # Add your huggingface access token here
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    surprisal_models = [
-        "meta-llama/Llama-2-7b-hf", 
-        "gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
-        "EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-1.3B", "EleutherAI/gpt-neo-2.7B",
-        'EleutherAI/gpt-j-6B',
-        "facebook/opt-350m", "facebook/opt-1.3b", "facebook/opt-2.7b", "facebook/opt-6.7b",
-        "EleutherAI/pythia-70m", "EleutherAI/pythia-160m", "EleutherAI/pythia-410m", "EleutherAI/pythia-1b",
-        "EleutherAI/pythia-1.4b", "EleutherAI/pythia-2.8b", "EleutherAI/pythia-6.9b", "EleutherAI/pythia-12b",
-        # "state-spaces/mamba-370m-hf", "state-spaces/mamba-790m-hf", "state-spaces/mamba-1.4b-hf", "state-spaces/mamba-2.8b-hf",
+    for mode in [Mode.IA.value, Mode.FIXATION.value]:
+        data_path = f"/data/home/shared/onestop/p_{mode}_reports"
+    
+        today = datetime.today().strftime("%d%m%Y")
+        save_file = f"{mode}_data_enriched_360_{today}.csv"
+        args_file = f"{mode}_preprocessing_args_360_{today}.json"
+        save_path = Path("/data/home/shared/onestop/processed")
+        hf_access_token = ""  # Add your huggingface access token here
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        surprisal_models = [
+            "meta-llama/Llama-2-7b-hf", 
+            "gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
+            "EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-1.3B", "EleutherAI/gpt-neo-2.7B",
+            'EleutherAI/gpt-j-6B',
+            "facebook/opt-350m", "facebook/opt-1.3b", "facebook/opt-2.7b", "facebook/opt-6.7b",
+            "EleutherAI/pythia-70m", "EleutherAI/pythia-160m", "EleutherAI/pythia-410m", "EleutherAI/pythia-1b",
+            "EleutherAI/pythia-1.4b", "EleutherAI/pythia-2.8b", "EleutherAI/pythia-6.9b", "EleutherAI/pythia-12b",
+            # "state-spaces/mamba-370m-hf", "state-spaces/mamba-790m-hf", "state-spaces/mamba-1.4b-hf", "state-spaces/mamba-2.8b-hf",
+            ]
+        args = [
+            "--data_path",
+            data_path,
+            "--save_path",
+            str(save_path / save_file),
+            "--mode",
+            mode,
+            "--filter_query",
+            "practice==0",
+            "--SURPRISAL_MODELS",
+            *surprisal_models,
+            "--hf_access_token",
+            hf_access_token,
+            "--device",
+            device,
         ]
-    args = [
-        "--data_path",
-        data_path,
-        "--save_path",
-        str(save_path / save_file),
-        "--mode",
-        mode,
-        "--filter_query",
-        "practice==0",
-        "--SURPRISAL_MODELS",
-        *surprisal_models,
-        "--hf_access_token",
-        hf_access_token,
-        "--device",
-        device,
-    ]
-    process_data(Mode.FIXATION.value, args)
-    process_data(Mode.IA.value, args)
+        process_data(mode, args)
