@@ -842,7 +842,7 @@ def validate_spacy_model(spacy_model_name: str) -> None:
         )
 
 
-def process_data(mode: str, args: List[str]):
+def process_data(args: List[str], args_file: str, save_path: str):
     cfg = ArgsParser().parse_args(args)
 
     args_save_path = save_path / args_file
@@ -890,4 +890,4 @@ if __name__ == "__main__":
             "--device",
             device,
         ]
-        process_data(mode, args)
+        process_data(args, args_file, save_path)
