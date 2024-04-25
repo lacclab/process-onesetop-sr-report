@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Literal
@@ -12,6 +13,7 @@ import spacy
 from tap import Tap
 from text_metrics.merge_metrics_with_eye_movements import add_metrics_to_eye_tracking
 from tqdm import tqdm
+import torch
 
 
 class Mode(Enum):
@@ -53,6 +55,12 @@ class ArgsParser(Tap):
     """
 
     filter_query: str = ""
+    
+    """
+    NOTE: To extract surprisal from state-spaces/mamba-* variants, better to first run:
+    >>> pip install causal-conv1d
+    >>> pip install mamba-ssm
+    """
     SURPRISAL_MODELS: List[str] = [
         "gpt2",
         # "EleutherAI/gpt-j-6B",
@@ -187,12 +195,6 @@ class ArgsParser(Tap):
         "CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE",
     ]  # Also includes surprisal models
 
-    base_cols += [
-        surprisal_model + "_Surprisal" for surprisal_model in SURPRISAL_MODELS
-    ]
-    base_cols += [
-        "prev_" + surprisal_model + "_Surprisal" for surprisal_model in SURPRISAL_MODELS
-    ]
 
     cols_to_add: List[str] = []  # columns to add to base_cols
     cols_to_remove: List[str] = []  # columns to remove from base_cols
@@ -223,6 +225,12 @@ class ArgsParser(Tap):
     qas_prolific_distribution_path: Path | None = None
     add_question_in_prompt: bool = False  # whether to add the question in the prompt
     mode: Mode = Mode.IA  # whether to use interest area or fixation data
+    device: str = "cuda" if torch.cuda.is_available() else "cpu" # Which device to run the surprisal models on
+    
+    """ Some models supported by this function require a huggingface access token
+        e.g meta-llama/Llama-2-7b-hf. If you have one, please add it here.
+        https://huggingface.co/docs/hub/security-tokens"""
+    hf_access_token: str = None
 
     def process_args(self) -> None:
         validate_spacy_model(self.NLP_MODEL)
@@ -273,6 +281,15 @@ def _load_raw_data(data_path) -> pd.DataFrame:
 
 
 def preprocess_data(args: ArgsParser) -> pd.DataFrame:
+
+    # If this won't be here the Surprisal columns won't be added to the base columns if they are not in the base columns in the first place
+    args.base_cols += [
+        surprisal_model + "_Surprisal" for surprisal_model in args.SURPRISAL_MODELS
+    ]
+    args.base_cols += [
+        "prev_" + surprisal_model + "_Surprisal" for surprisal_model in args.SURPRISAL_MODELS
+    ]
+    
     logger.info("Making sure data paths exist...")
 
     if args.add_prolific_qas_distribution:
@@ -687,7 +704,10 @@ def add_word_metrics(df: pd.DataFrame, args: ArgsParser) -> pd.DataFrame:
         spacy_model_name=args.NLP_MODEL,
         add_question_in_prompt=args.add_question_in_prompt,
         parsing_mode=args.parsing_mode,
+        model_target_device=args.device,
+        hf_access_token=args.hf_access_token,
     )
+    
 
     logger.info("Renaming column 'IA_LABEL_x' to 'IA_LABEL'...")
     df.rename(columns={"IA_LABEL_x": "IA_LABEL"}, inplace=True)
@@ -822,6 +842,53 @@ def validate_spacy_model(spacy_model_name: str) -> None:
         )
 
 
-if __name__ == "__main__":
-    cfg = ArgsParser().parse_args()
+def process_data(mode: str):
+    data_path = f"/data/home/shared/onestop/p_{mode}_reports"
+
+    today = datetime.today().strftime("%d%m%Y")
+    save_file = f"{mode}_data_enriched_360_{today}.csv"
+    args_file = f"{mode}_preprocessing_args_360_{today}.json"
+    save_path = Path("/data/home/shared/onestop/processed")
+    hf_access_token = ""  # Add your huggingface access token here
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    surprisal_models = [
+        "meta-llama/Llama-2-7b-hf", 
+        "gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
+        "EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-1.3B", "EleutherAI/gpt-neo-2.7B",
+        'EleutherAI/gpt-j-6B',
+        "facebook/opt-350m", "facebook/opt-1.3b", "facebook/opt-2.7b", "facebook/opt-6.7b",
+        "EleutherAI/pythia-70m", "EleutherAI/pythia-160m", "EleutherAI/pythia-410m", "EleutherAI/pythia-1b",
+        "EleutherAI/pythia-1.4b", "EleutherAI/pythia-2.8b", "EleutherAI/pythia-6.9b", "EleutherAI/pythia-12b",
+        # "state-spaces/mamba-370m-hf", "state-spaces/mamba-790m-hf", "state-spaces/mamba-1.4b-hf", "state-spaces/mamba-2.8b-hf",
+        ]
+    args = [
+        "--data_path",
+        data_path,
+        "--save_path",
+        str(save_path / save_file),
+        "--mode",
+        mode,
+        "--filter_query",
+        "practice==0",
+        "--SURPRISAL_MODELS",
+        *surprisal_models,
+        "--hf_access_token",
+        hf_access_token,
+        "--device",
+        device,
+    ]
+
+    cfg = ArgsParser().parse_args(args)
+
+    args_save_path = save_path / args_file
+    save_path.mkdir(parents=True, exist_ok=True)
+    cfg.save(str(args_save_path))
+    print(f"Saved config to {args_save_path}")
+
+    print(f"Running preprocessing with args: {args}")
     preprocess_data(cfg)
+
+
+if __name__ == "__main__":
+    process_data(Mode.FIXATION.value)
+    process_data(Mode.IA.value)
