@@ -499,7 +499,6 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
                 "article_id",
                 "paragraph_id",
                 "q_ind",
-                "question",
             ]
         ].drop_duplicates()
 
@@ -537,26 +536,17 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
             q_reference = questions.loc[
                 questions["q_ind"] == row.q_ind, "references"
             ].item()
-            q_references.append(q_reference)
 
-            if cs_two_questions_flag == 0:
-                question_prediction_labels.append(0)
-            else:
-                # get the two questions with the current cs
-                cs_questions = questions.loc[
-                    questions["cs_has_two_questions"] == cs_two_questions_flag
-                ]
-                # sort by lexical order of row.question
-                cs_questions = cs_questions.sort_values(by="question").reset_index()
-                # get the index of the current question
-                current_question_index = cs_questions.loc[
-                    cs_questions.q_ind == row.q_ind
-                ].index.item()
-                question_prediction_labels.append(current_question_index+1)
+            question_prediction_label = questions.loc[
+                questions["q_ind"] == row.q_ind, "question_prediction_label"
+            ].item()
+            
+            question_prediction_labels.append(question_prediction_label)
+
 
         text_data["cs_has_two_questions"] = cs_has_two_questions
         text_data["q_reference"] = q_references
-        text_data["question_prediction_label"] = question_prediction_labels
+        text_data['question_prediction_label'] = question_prediction_labels
         df = df.merge(text_data, validate="m:1", how="left")
 
     # {"Gathering": 0, "Hunting": 1}
