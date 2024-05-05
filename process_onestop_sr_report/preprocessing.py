@@ -72,7 +72,8 @@ class ArgsParser(Tap):
         "unique_paragraph_id",
         "has_preview",
         "q_ind",
-        "q_condition",
+        "question_prediction_label",
+        "question_n_condition_prediction_label",
         "practice",
         "reread",
         "is_correct",
@@ -498,6 +499,7 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
                 "article_id",
                 "paragraph_id",
                 "q_ind",
+                "question",
             ]
         ].drop_duplicates()
 
@@ -516,6 +518,7 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
 
         cs_has_two_questions = []
         q_references = []
+        question_prediction_labels = []
         for row in tqdm(
             iterable=text_data.itertuples(), total=len(text_data), desc="Adding"
         ):
@@ -535,15 +538,31 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
                 questions["q_ind"] == row.q_ind, "references"
             ].item()
             q_references.append(q_reference)
+
+            if cs_two_questions_flag == 0:
+                question_prediction_labels.append(0)
+            else:
+                # get the two questions with the current cs
+                cs_questions = questions.loc[
+                    questions["cs_has_two_questions"] == cs_two_questions_flag
+                ]
+                # sort by lexical order of row.question
+                cs_questions = cs_questions.sort_values(by="question").reset_index()
+                # get the index of the current question
+                current_question_index = cs_questions.loc[
+                    cs_questions["question"] == q_reference
+                ].index.item()
+                question_prediction_labels.append(current_question_index+1)
+
         text_data["cs_has_two_questions"] = cs_has_two_questions
         text_data["q_reference"] = q_references
+        text_data["question_prediction_label"] = question_prediction_labels
         df = df.merge(text_data, validate="m:1", how="left")
 
-    # q_condition = q_ind if has_preview is Hunting else 3
     # {"Gathering": 0, "Hunting": 1}
-    df["q_condition"] = df.apply(
-        lambda x: x["q_ind"] if x["has_preview"] in [1, "Hunting"] else 3, axis=1
-    )
+    df["question_n_condition_prediction_label"] = df.apply(
+        lambda x: x["question_prediction_label"] if x["has_preview"] in [1, "Hunting"] else 3, axis=1
+    )  # 3 is the label for the null question (gathering) and corresponds to the condition prediction.
 
     
     df = filter_columns(df, args.base_cols)
