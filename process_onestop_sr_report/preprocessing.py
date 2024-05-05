@@ -550,7 +550,7 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
                 cs_questions = cs_questions.sort_values(by="question").reset_index()
                 # get the index of the current question
                 current_question_index = cs_questions.loc[
-                    cs_questions["question"] == q_reference
+                    cs_questions.q_ind == row.q_ind
                 ].index.item()
                 question_prediction_labels.append(current_question_index+1)
 
