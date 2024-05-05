@@ -538,7 +538,7 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
             ].item()
 
             question_prediction_label = questions.loc[
-                questions["q_ind"] == row.q_ind, "references"
+                questions["q_ind"] == row.q_ind, "question_prediction_label"
             ].item()
             
             question_prediction_labels.append(question_prediction_label)
@@ -546,6 +546,7 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
 
         text_data["cs_has_two_questions"] = cs_has_two_questions
         text_data["q_reference"] = q_references
+        text_data['question_prediction_label'] = question_prediction_labels
         df = df.merge(text_data, validate="m:1", how="left")
 
     # {"Gathering": 0, "Hunting": 1}
