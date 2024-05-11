@@ -26,7 +26,7 @@ dependencies:
   # - r-gratia
   - pip:
       # - dvc
-      - git+https://github.com/lacclab/text-metrics.git#@v1.0.0 todo freeze version before release
+      - git+https://github.com/lacclab/text-metrics.git #@v1.0.0 todo freeze version before release
       # - dvclive
       # - rpy2
       - -e . # For development purposes
