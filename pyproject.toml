@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
   "pandas",
   'typed-argument-parser',
-  'text_metrics @ git+https://git@github.com/lacclab/text-metrics.git@v1.0.0',
+  'text_metrics @ git+https://git@github.com/lacclab/text-metrics.git', # TODO freeze before release @1.0.0 for example
   "numpy",
   "spacy",
 ]
