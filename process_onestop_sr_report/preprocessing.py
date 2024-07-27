@@ -310,7 +310,7 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
     logger.info("Preprocessing data...")
 
     if args.data_path:
-        df = load_data(args.data_path)
+        df = load_data(args.data_path, sep="\t")
     else:
         hunting_data = load_data(args.hunting_data_path, sep="\t")
         gathering_data = load_data(args.gathering_data_path, sep="\t")
