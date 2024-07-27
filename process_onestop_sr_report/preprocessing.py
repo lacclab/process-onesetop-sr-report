@@ -549,12 +549,12 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
         text_data['question_prediction_label'] = question_prediction_labels
         df = df.merge(text_data, validate="m:1", how="left")
 
-    # {"Gathering": 0, "Hunting": 1}
-    df["question_n_condition_prediction_label"] = df.apply(
-        lambda x: x["question_prediction_label"] if x["has_preview"] in [1, "Hunting"] else 3, axis=1
-    )  # 3 is the label for the null question (gathering) and corresponds to the condition prediction.
+        # {"Gathering": 0, "Hunting": 1}
+        df["question_n_condition_prediction_label"] = df.apply(
+            lambda x: x["question_prediction_label"] if x["has_preview"] in [1, "Hunting"] else 3, axis=1
+        )  # 3 is the label for the null question (gathering) and corresponds to the condition prediction.
 
-    
+        
     df = filter_columns(df, args.base_cols)
 
     df.to_csv(args.save_path)
