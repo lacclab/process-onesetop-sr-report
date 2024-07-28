@@ -141,6 +141,8 @@ class ArgsParser(Tap):
         "IA_AVERAGE_FIX_PUPIL_SIZE",
         "IA_DWELL_TIME",
         "IA_DWELL_TIME_%",
+        "IA_FIRST_RUN_LANDING_POSITION",
+        "IA_LAST_RUN_LANDING_POSITION",
         "IA_FIXATION_%",
         "IA_FIXATION_COUNT",
         "IA_REGRESSION_IN_COUNT",
@@ -194,6 +196,10 @@ class ArgsParser(Tap):
         "NEXT_SAC_DURATION",
         "NEXT_SAC_PEAK_VELOCITY",
         "CURRENT_FIX_NEAREST_INTEREST_AREA_DISTANCE",
+        "NEXT_SAC_END_X",
+        "NEXT_SAC_START_X",
+        "NEXT_SAC_END_Y",
+        "NEXT_SAC_START_Y",
     ]  # Also includes surprisal models
 
 
@@ -334,6 +340,8 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
     if args.mode == Mode.IA:
         to_int_features += [
             "IA_DWELL_TIME",
+            "IA_FIRST_RUN_LANDING_POSITION",
+            "IA_LAST_RUN_LANDING_POSITION",
             "IA_FIRST_FIXATION_DURATION",
             "IA_REGRESSION_PATH_DURATION",
             "IA_FIRST_RUN_DWELL_TIME",
@@ -383,6 +391,10 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
             "CURRENT_FIX_Y",
             "CURRENT_FIX_INDEX",
             "NEXT_SAC_DURATION",
+            "NEXT_SAC_END_X",
+            "NEXT_SAC_START_X",
+            "NEXT_SAC_END_Y",
+            "NEXT_SAC_START_Y",
         ]
         to_float_features = [
             FIXATION_ID_COL,
