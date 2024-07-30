@@ -817,9 +817,16 @@ def load_data(
         try:
             print(f"Load data from {data_path} using pyarrow.")
             data = pd.read_csv(data_path, encoding='utf-16', engine="pyarrow", **kwargs)
+        except UnicodeError:
+            print(f"Attempting to load data from {data_path} without specifying encoding.")
+            data = pd.read_csv(data_path, engine="pyarrow", **kwargs)                
         except ValueError:
             print(f"Load data from {data_path} (without pyarrow -- much slower!).")
-            data = pd.read_csv(data_path, encoding='utf-16', **kwargs)
+            try:
+                data = pd.read_csv(data_path, encoding='utf-16', **kwargs)
+            except UnicodeError:
+                print(f"Attempting to load data from {data_path} without specifying encoding.")
+                data = pd.read_csv(data_path, **kwargs)
 
     if has_preview_to_numeric:
         data["has_preview"] = data["has_preview"].map({"Gathering": 0, "Hunting": 1})
