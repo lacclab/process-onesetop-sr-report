@@ -340,8 +340,6 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
     if args.mode == Mode.IA:
         to_int_features += [
             "IA_DWELL_TIME",
-            "IA_FIRST_RUN_LANDING_POSITION",
-            "IA_LAST_RUN_LANDING_POSITION",
             "IA_FIRST_FIXATION_DURATION",
             "IA_REGRESSION_PATH_DURATION",
             "IA_FIRST_RUN_DWELL_TIME",
@@ -378,6 +376,8 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
             "IA_LAST_RUN_FIXATION_%",
             "IA_LAST_SACCADE_AMPLITUDE",
             "IA_LAST_SACCADE_ANGLE",
+            "IA_FIRST_RUN_LANDING_POSITION",
+            "IA_LAST_RUN_LANDING_POSITION",
         ]
         subtract_one_fields = [IA_ID_COL]
 
@@ -391,10 +391,6 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
             "CURRENT_FIX_Y",
             "CURRENT_FIX_INDEX",
             "NEXT_SAC_DURATION",
-            "NEXT_SAC_END_X",
-            "NEXT_SAC_START_X",
-            "NEXT_SAC_END_Y",
-            "NEXT_SAC_START_Y",
         ]
         to_float_features = [
             FIXATION_ID_COL,
@@ -407,6 +403,10 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
             "NEXT_SAC_ANGLE",
             "NEXT_SAC_AVG_VELOCITY",
             "NEXT_SAC_PEAK_VELOCITY",
+            "NEXT_SAC_END_X",
+            "NEXT_SAC_START_X",
+            "NEXT_SAC_END_Y",
+            "NEXT_SAC_START_Y",
         ]
         subtract_one_fields = [
             FIXATION_ID_COL,
@@ -554,6 +554,7 @@ def preprocess_data(args: ArgsParser) -> pd.DataFrame:
             ].item()
             
             question_prediction_labels.append(question_prediction_label)
+            q_references.append(q_reference)
 
 
         text_data["cs_has_two_questions"] = cs_has_two_questions
@@ -821,9 +822,9 @@ def load_data(
 
     if data_path.is_dir():
         try:
-            dataframes = [pd.read_csv(file, sep='\t', encoding='utf-16', **kwargs) for file in data_path.glob('*.tsv')]
+            dataframes = [pd.read_csv(file, encoding='utf-16', **kwargs) for file in data_path.glob('*.tsv')]
         except UnicodeError:
-            dataframes = [pd.read_csv(file, sep='\t', low_memory=False, **kwargs) for file in data_path.glob('*.tsv')]
+            dataframes = [pd.read_csv(file, low_memory=False, **kwargs) for file in data_path.glob('*.tsv')]
         data = pd.concat(dataframes, ignore_index=True)
     else:
         try:
