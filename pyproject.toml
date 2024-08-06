@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "process_onestop_sr_report"
-version = "0.3.8"
+version = "0.3.9"
 authors = [
   { name="Omer Shubi", email="omer.shubi@gmail.com" },
 ]
